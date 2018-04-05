@@ -15,9 +15,8 @@ class App extends Component {
 
   constructor(props){
     super(props);
-
     this.state = {
-      list : list,
+      list,
       searchTerm: ''
     }
 
@@ -26,23 +25,6 @@ class App extends Component {
     this.searchValue = this.searchValue.bind(this);
 
   }
-  /*
-  removeItem(id){
-    console.log('remove.item');
-    // using javascript filter method
-    // we can filter out the clicked item and render the updated list
-    function isNotId(item){
-      return item.objectID !== id;
-    }
-
-    // create a new updates list
-    const updatedList = this.state.list.filter(isNotId);
-    // assign the new updated list  to the list using setState method
-    this.setState({list: updatedList});
-
-  }
-  */
-
   removeItem(id){
     console.log('remove.item');
     const isNotId = item => item.objectID !== id;
@@ -57,6 +39,8 @@ class App extends Component {
 
   render() {
 
+    const { list , searchTerm } = this.state;
+
     console.log(this);
 
     return (
@@ -65,27 +49,16 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Welcome to React</h1>
         </header>
+        <Search
+          onChange={this.searchValue}  
+          value={ searchTerm }
+        >Search here...</Search>
 
-
-        <form>
-          <input type="text" onChange={this.searchValue} />
-        </form>
-
-       {
-          this.state.list.filter( isSearched(this.state.searchTerm) ).map(item => 
-            <div key={item.objectID}>
-                <h1><a href={item.url}>{item.title}</a> by {item.author}</h1>
-                <h4>{item.num_comments} Comments | {item.points} Points</h4>
-                <button type="button" 
-                      onClick={() => this.removeItem(item.objectID)}
-
-                >
-                    Remove
-                 </button>
-            </div>          
-        )
-       }
-        
+        <Table 
+          list={list}
+          searchTerm={searchTerm}
+          removeItem={this.removeItem}
+        />       
         <p className="App-intro">
           To get started, edit <code>src/App.js</code> and save to reload.
         </p>
@@ -93,5 +66,75 @@ class App extends Component {
     );
   }
 }
+
+class Search extends Component{
+  render(){
+    const {onChange,value,children} = this.props;
+    return(
+      <div>
+        <form>
+          {children}
+          <input type="text" 
+          onChange={onChange}  
+          value={value}
+          />
+        </form>
+      </div>
+    )
+  }
+}
+
+class Table extends Component{
+  render(){
+    const {list,searchTerm,removeItem} = this.props;
+    return(
+      <div>
+        {
+          list.filter( isSearched(searchTerm) ).map(item => 
+            <div key={item.objectID}>
+                <h1><a href={item.url}>{item.title}</a> by {item.author}</h1>
+                <h4>{item.num_comments} Comments | {item.points} Points</h4>
+                <Button
+                type="button" 
+                onClick={() => removeItem(item.objectID)}>
+                      Remove me
+                </Button>
+            </div>          
+        )
+       }
+      </div>
+    )
+  }
+}
+
+// class Button extends Component{
+//   render(){
+//     const{onClick,type,children} = this.props;
+//     return(
+//       <div>
+//         <button 
+//           type={type} 
+//           onClick={onClick}>
+//             {children}
+//         </button>
+//       </div>
+//     )
+//   }
+// }
+
+// old version function 
+// function Button({onClick, children}){
+//   return(
+//       <button
+//         onClick={onClick}>
+//         {children}
+//       </button>
+//   )
+// }
+
+// ES6 function
+
+const Button = ({onClick,children}) => <button onClick={onClick}>{children}</button>
+
 
 export default App;
