@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import list from './list';
-import logo from './logo.svg';
+import {Grid, Row} from 'react-bootstrap';
 import './App.css';
 
 // filter the result by search
@@ -45,94 +45,62 @@ class App extends Component {
 
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <Search
-          onChange={this.searchValue}  
-          value={ searchTerm }
-        >Search here...</Search>
 
+        <Grid>
+          <Row>
+            <div className="jumbotron">
+            <Search
+              onChange={this.searchValue}  
+              value={ searchTerm }
+            >Search here...</Search>
+            </div>
+          </Row>
+        </Grid>
+        
         <Table 
           list={list}
           searchTerm={searchTerm}
           removeItem={this.removeItem}
         />       
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        
       </div>
     );
   }
 }
 
-class Search extends Component{
-  render(){
-    const {onChange,value,children} = this.props;
-    return(
-      <div>
-        <form>
-          {children}
-          <input type="text" 
-          onChange={onChange}  
-          value={value}
-          />
-        </form>
-      </div>
-    )
-  }
+const Search = ({onChange,value,children}) => {
+  return(
+    <div>
+      <form>
+        {children}
+        <input type="text" 
+        onChange={onChange}  
+        value={value}
+        />
+      </form>
+    </div>
+  )
 }
 
-class Table extends Component{
-  render(){
-    const {list,searchTerm,removeItem} = this.props;
-    return(
-      <div>
-        {
-          list.filter( isSearched(searchTerm) ).map(item => 
-            <div key={item.objectID}>
-                <h1><a href={item.url}>{item.title}</a> by {item.author}</h1>
-                <h4>{item.num_comments} Comments | {item.points} Points</h4>
-                <Button
-                type="button" 
-                onClick={() => removeItem(item.objectID)}>
-                      Remove me
-                </Button>
-            </div>          
-        )
-       }
-      </div>
-    )
-  }
+const Table = ({list,searchTerm,removeItem}) => {
+  return(
+    <div>
+      {
+        list.filter( isSearched(searchTerm) ).map(item => 
+          <div key={item.objectID}>
+              <h1><a href={item.url}>{item.title}</a> by {item.author}</h1>
+              <h4>{item.num_comments} Comments | {item.points} Points</h4>
+              <Button
+              type="button" 
+              onClick={() => removeItem(item.objectID)}>
+                    Remove me
+              </Button>
+          </div>          
+      )
+     }
+    </div>
+  )
 }
-
-// class Button extends Component{
-//   render(){
-//     const{onClick,type,children} = this.props;
-//     return(
-//       <div>
-//         <button 
-//           type={type} 
-//           onClick={onClick}>
-//             {children}
-//         </button>
-//       </div>
-//     )
-//   }
-// }
-
-// old version function 
-// function Button({onClick, children}){
-//   return(
-//       <button
-//         onClick={onClick}>
-//         {children}
-//       </button>
-//   )
-// }
-
-// ES6 function
 
 const Button = ({onClick,children}) => <button onClick={onClick}>{children}</button>
 
