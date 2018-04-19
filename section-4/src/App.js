@@ -3,10 +3,15 @@ import React, { Component } from 'react';
 import {Grid, Row, FormGroup} from 'react-bootstrap';
 
 // deafult parameters to fetch data from the API
-const DEFAULT_QUERY = 'react';
+const DEFAULT_QUERY = 'React';
+const DEFAULT_PAGE = 0;
+const DEFAULT_HPP = 20;
+
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
+const PARAM_PAGE = 'page=';
+const PARAM_HPP = 'histPerPage=';
 
 // filter the result by search
 function isSearched(searchTerm){
@@ -34,12 +39,22 @@ class App extends Component {
 
   //set top stories
   setTopStories(result){
-    this.setState({result: result});
+    // get the hits and page from result
+    const { hits,page } = result;
+    // meaning page is not 0, button has been clicked page might be 1 or 2
+    // old hits are already available in the state
+    const oldHits = page !== 0 ? this.state.result.hits : [];
+    const updateHits = [...oldHits, ...hits];
+    this.setState({result: {hits: updateHits, page}});
   }
 
   // fetch top stories
-  fetchTopStories(searchTerm){
-    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+  fetchTopStories(searchTerm, page){
+    // beacause hist per page err 500
+    // fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}
+    // &${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}
+    &${PARAM_PAGE}${page}`)
     .then(response => response.json())
     .then(result => this.setTopStories(result))
     .catch(err => err);
@@ -47,12 +62,12 @@ class App extends Component {
 
   // componentDidMount
   componentDidMount(){
-    this.fetchTopStories(this.state.searchTerm);
+    this.fetchTopStories(this.state.searchTerm, DEFAULT_PAGE);
   }
 
   // on search submit function
   onSubmit(event){
-    this.fetchTopStories(this.state.searchTerm);
+    this.fetchTopStories(this.state.searchTerm, DEFAULT_PAGE);
     event.preventDefault();
   }
 
@@ -78,6 +93,7 @@ class App extends Component {
   render() {
 
     const { result , searchTerm } = this.state;
+    const page = (result && result.page) || 0;
     // if (!result){
     //   return null;
     // }
@@ -104,7 +120,14 @@ class App extends Component {
             removeItem={this.removeItem}
           />
         }
-               
+        <div className="text-center alert">
+          <Button
+            className="btn btn-success"
+            onClick={ () => this.fetchTopStories(searchTerm, page + 1)}
+          >
+            Load more  
+          </Button>
+        </div>      
         
       </div>
     );
