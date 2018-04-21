@@ -13,10 +13,21 @@ const PARAM_SEARCH = 'query=';
 const PARAM_PAGE = 'page=';
 const PARAM_HPP = 'histPerPage=';
 
-// filter the result by search
+const url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${DEFAULT_QUERY}
+            &${PARAM_PAGE}&${PARAM_HPP}${DEFAULT_HPP}`;
+console.log(url);
+
+// filter the results by search
 function isSearched(searchTerm){
   return function(item){
-    return !searchTerm || item.title.includes(searchTerm);
+    return !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
+  }
+}
+
+// filter the results by search
+function isSearched(searchTerm){
+  return function(item){
+    return !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
   }
 }
 class App extends Component {
@@ -24,7 +35,8 @@ class App extends Component {
   constructor(props){
     super(props);
     this.state = {
-      result: null,
+      results: null,
+      searchKey: '',
       searchTerm: DEFAULT_QUERY
     }
 
@@ -37,15 +49,26 @@ class App extends Component {
 
   }
 
-  //set top stories
+  // check top stories search term
+  checkTopStoriesSearchTerm(searchTerm){
+    return !this.state.results[searchTerm];
+  }
+
+  // set top stories
   setTopStories(result){
-    // get the hits and page from result
-    const { hits,page } = result;
-    // meaning page is not 0, button has been clicked page might be 1 or 2
+    // get the hits ang page from result
+    const { hits, page } = result;
+    // meaning page is not 0, button has been clicked, page might be 1 or 2
     // old hits are already available in the state
-    const oldHits = page !== 0 ? this.state.result.hits : [];
-    const updateHits = [...oldHits, ...hits];
-    this.setState({result: {hits: updateHits, page}});
+    // const oldHits = page !== 0 ? this.state.result.hits : [];
+
+    const { searchKey, results } = this.state;
+
+    const oldHits = results && results[searchKey] ? results[searchKey].hits : [];
+
+    const updatedHits = [...oldHits, ...hits];
+
+    this.setState({ results: { ...results, [searchKey]: {hits: updatedHits, page} } });
   }
 
   // fetch top stories
@@ -61,13 +84,21 @@ class App extends Component {
   }
 
   // componentDidMount
-  componentDidMount(){
-    this.fetchTopStories(this.state.searchTerm, DEFAULT_PAGE);
+  componentDidMount() {
+    const { searchTerm } = this.state;
+    this.setState({ searchKey: searchTerm });
+    this.fetchTopStories(searchTerm, DEFAULT_PAGE);
   }
 
   // on search submit function
   onSubmit(event){
-    this.fetchTopStories(this.state.searchTerm, DEFAULT_PAGE);
+    const { searchTerm } = this.state;
+    this.setState({ searchKey: searchTerm });
+
+    if (this.checkTopStoriesSearchTerm(searchTerm)) {
+      this.fetchTopStories(this.state.searchTerm, DEFAULT_PAGE);
+    }
+
     event.preventDefault();
   }
 
@@ -80,9 +111,12 @@ class App extends Component {
     // this.setState({result: Object.assign({}, this.state.result, {hits: updatedList})});
   
     // new version
-    const {result} = this.state;
-    const updatedList = result.hits.filter(item => item.objectID !== id);
-    this.setState({result: {...result, hits: updatedList}});
+    const { results, searchKey } = this.state;
+    const { hits, page } = results[searchKey];
+    // const isNotId = item => item.objectID !== id;
+    const updatedList = hits.filter(item => item.objectID !== id);
+    // this.setState({ result: Object.assign({}, this.state.result, {hits: updatedList}) });
+    this.setState({ results: {...results, [searchKey]: {hits: updatedList, page}} });
   }
 
   searchValue(event){
@@ -91,12 +125,14 @@ class App extends Component {
   }
 
   render() {
+    const { results, searchTerm, searchKey } = this.state;
 
-    const { result , searchTerm } = this.state;
-    const page = (result && result.page) || 0;
-    // if (!result){
-    //   return null;
-    // }
+    // if (!result) { return null; }
+
+    const page = (results && results[searchKey] && results[searchKey].page) || 0;
+
+    const list = (results && results[searchKey] && results[searchKey].hits) || [];
+
     console.log(this);
 
     return (
@@ -113,9 +149,9 @@ class App extends Component {
             </div>
           </Row>
         </Grid>
-        {result &&
+        {results &&
           <Table 
-            list={result.hits}
+            list={list}
             searchTerm={searchTerm}
             removeItem={this.removeItem}
           />
